@@ -26,28 +26,43 @@ DOWNLOAD_DIR = ensure_dir(SETTINGS.download_dir / "telegram")
 
 
 async def process(
-    data: Voice | VideoNote | Video | Audio,
+    data: Voice | VideoNote | Video | Audio | None,
     message: Message,
     extension: str | None = None,
 ) -> None:
+    if data is None:
+        return
+
     answer: Message = await message.reply("Распознаю речь\nПожалуйста подождите")
 
-    if data.file_size > MAX_FILE_SIZE:
+    if (data.file_size or 0) > MAX_FILE_SIZE:
         await answer.edit_text("Сообщение слишком большое")
         return
 
+    if bot_file := (await bot.get_file(data.file_id)).file_path is None:
+        await answer.edit_text("Не удалось загрузить сообщение")
+        return
+
     with TemporaryFile("w+b", dir=DOWNLOAD_DIR, delete_on_close=False) as tmp:
-        # noinspection PyTypeChecker
-        await bot.download_file(
-            (await bot.get_file(data.file_id)).file_path,
-            destination=tmp,
-        )
+        await bot.download_file(bot_file, destination=tmp)
         tmp.seek(0)
         if extension is None:
-            extension = filetype.guess(tmp.read(261)).extension
+            if tmp := filetype.guess(tmp.read(261)) is None:
+                await answer.edit_text("Не удалось определить формат сообщения")
+                return
+            extension: str = tmp.extension
 
         logging.debug(tmp.name)
-        back = select_backend(languages=(message.from_user.language_code,))
+
+        back = select_backend(
+            languages=(
+                (
+                    from_user.language_code
+                    if (from_user := message.from_user) is not None
+                    else None
+                ),
+            )
+        )
         res_path, res_type = await convert(
             Path(tmp.name),
             extension,
@@ -57,7 +72,6 @@ async def process(
     res = await back.process(res_path, res_type)
     await answer.edit_text(res)
 
-    # os.remove(tmp.name)
     res_path.unlink(missing_ok=True)
 
 
