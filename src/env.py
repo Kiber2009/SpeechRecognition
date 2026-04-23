@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     TELEGRAM_PROXY: str | None = None
     TEMP_DIR: Path = Path(tempfile.gettempdir()) / "SpeechRecognition"
     MODELS_DIR: Path
+    DEBUG: bool = False
 
     @field_validator("INCLUDE_BACKENDS", mode="before")
     @classmethod
@@ -25,7 +26,6 @@ class Settings(BaseSettings):
     @property
     def download_dir(self) -> Path:
         return self.TEMP_DIR / "download"
-
 
 
 # noinspection PyArgumentList

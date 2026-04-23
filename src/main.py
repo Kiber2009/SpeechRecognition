@@ -10,7 +10,7 @@ from services import Service, get_services
 
 if __name__ == "__main__":
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.DEBUG if SETTINGS.DEBUG else logging.INFO,
         format="%(asctime)s [%(levelname)s] (%(name)s) %(message)s",
     )
 
