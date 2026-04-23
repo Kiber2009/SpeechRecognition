@@ -2,11 +2,12 @@ import json
 import logging
 import wave
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Literal
 
 from vosk import KaldiRecognizer, Model
 
 from backends import Backend
+from config import ModelConfig
 from env import SETTINGS
 
 logger = logging.getLogger(__name__)
@@ -14,10 +15,19 @@ logger = logging.getLogger(__name__)
 MODELS_PATH = SETTINGS.MODELS_DIR / "vosk"
 
 
+class VoskModelConfig(ModelConfig):
+    type: Literal["vosk"]
+    path: Path
+    languages: list[str]
+
+    def get_backend(self) -> Backend:
+        return VoskBackend(self.path, *self.languages)
+
+
 class VoskBackend(Backend):
-    def __init__(self, name: str, *lang: str) -> None:
+    def __init__(self, path: Path, *lang: str) -> None:
         self.model = None
-        self.name = name
+        self.path = path
         self.lang = lang
 
     @property
@@ -29,7 +39,7 @@ class VoskBackend(Backend):
         return self.lang
 
     async def setup(self) -> None:
-        path = (MODELS_PATH / self.name).absolute()
+        path = self.path.absolute()
         logger.debug(f'Loading vosk model "{path}"')
         self.model = Model(str(path))
 

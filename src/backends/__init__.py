@@ -2,37 +2,41 @@ import logging
 from collections.abc import Iterable
 
 from backends.api import Backend
-from backends.vosk import VoskBackend
-from utils import stable_partition
+from backends.vosk import VoskModelConfig
+from config import config, model_config_types
+from utils import ValueStore, stable_partition
 
-BACKENDS: dict[str, Backend] = {
-    "vosk_ru": VoskBackend("vosk-model-ru-0.42", "ru"),
-    "vosk_ru_small": VoskBackend("vosk-model-small-ru-0.22", "ru"),
-}
+model_config_types.add(VoskModelConfig)
+
+backends = ValueStore[dict[str, Backend]]()
 
 
 async def setup_backends(names: set[str] | None) -> None:
+    models = config.get().models.copy()
+
     if names is None:
-        names = set(BACKENDS.keys())
+        names: set[str] = set(models.keys())
 
-    for i in set(BACKENDS.keys()):
-        if i not in names:
-            del BACKENDS[i]
-            continue
+    backs = {k: v.get_backend() for k, v in models.items() if k in names}
 
-        logging.info(f"Setting up backend: {i}")
-        await BACKENDS[i].setup()
+    for k, v in backs.items():
+        logging.info(f"Setting up backend: {k}")
+        await v.setup()
+
+    backends.set(backs)
 
 
 def select_backend(languages: Iterable[str | None] | None = None) -> Backend:
-    res = list(BACKENDS.keys())
+    backs = backends.get()
+
+    res = list(backs.keys())
 
     if languages is not None:
         res = stable_partition(
             res,
             lambda x: all(
-                map(lambda y: y in BACKENDS[x].supported_languages, languages or ())
+                map(lambda y: y in backs[x].supported_languages, languages or ())
             ),
         )
 
-    return BACKENDS[res[0]]
+    return backs[res[0]]
