@@ -17,7 +17,7 @@ async def setup_backends(names: set[str] | None) -> None:
     if names is None:
         names: set[str] = set(models.keys())
 
-    backs = {k: v for k, v in models.items() if k in names}
+    backs = {k: v.get_backend() for k, v in models.items() if k in names}
 
     for k, v in backs.items():
         logging.info(f"Setting up backend: {k}")
