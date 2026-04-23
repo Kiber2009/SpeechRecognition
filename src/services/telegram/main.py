@@ -39,7 +39,7 @@ async def process(
         await answer.edit_text("Сообщение слишком большое")
         return
 
-    if bot_file := (await bot.get_file(data.file_id)).file_path is None:
+    if (bot_file := (await bot.get_file(data.file_id)).file_path) is None:
         await answer.edit_text("Не удалось загрузить сообщение")
         return
 
