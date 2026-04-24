@@ -13,7 +13,6 @@ class Settings(BaseSettings):
     TELEGRAM_BOT_TOKEN: str | None = None
     TELEGRAM_PROXY: str | None = None
     TEMP_DIR: Path = Path(tempfile.gettempdir()) / "SpeechRecognition"
-    MODELS_DIR: Path
     DEBUG: bool = False
 
     @field_validator("INCLUDE_BACKENDS", mode="before")

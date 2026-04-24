@@ -8,11 +8,8 @@ from vosk import KaldiRecognizer, Model
 
 from backends import Backend
 from config import ModelConfig
-from env import SETTINGS
 
 logger = logging.getLogger(__name__)
-
-MODELS_PATH = SETTINGS.MODELS_DIR / "vosk"
 
 
 class VoskModelConfig(ModelConfig):
