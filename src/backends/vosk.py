@@ -37,7 +37,7 @@ class VoskBackend(Backend):
 
     async def setup(self) -> None:
         path = self.path.absolute()
-        logger.debug(f'Loading vosk model "{path}"')
+        logger.debug('Loading vosk model "%s"', path)
         self.model = Model(str(path))
 
     async def process(self, file: Path, media_type: str) -> str:

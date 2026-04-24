@@ -20,7 +20,7 @@ async def setup_backends(names: set[str] | None) -> None:
     backs = {k: v.get_backend() for k, v in models.items() if k in names}
 
     for k, v in backs.items():
-        logging.info(f"Setting up backend: {k}")
+        logging.info("Setting up backend: %s", k)
         await v.setup()
 
     backends.set(backs)
