@@ -70,6 +70,8 @@ async def process(
         )
 
     res = await back.process(res_path, res_type)
+    if res == "":
+        res = "Речь не найдена"
     await answer.edit_text(res)
 
     res_path.unlink(missing_ok=True)
